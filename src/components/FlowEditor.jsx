@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import ReactFlow, { Background, addEdge, useEdgesState, useNodesState, Position, Controls, MiniMap } from 'react-flow-renderer';
+import React, { useState, useCallback, useEffect } from 'react';
+import ReactFlow, { Background, addEdge, useEdgesState, useNodesState, Position, Controls, MiniMap, ReactFlowProvider, useReactFlow } from 'react-flow-renderer';
 import { useDrop } from 'react-dnd';
 
 import "../assets/css/flow.css";
@@ -98,6 +98,38 @@ export function FlowEditor() {
     }),
   });
 
+  const handleConnect = useCallback((params) => {
+    const sourceNode = nodes.find((node) => node.id === params.source);
+    const targetNode = nodes.find((node) => node.id === params.target);
+
+    if (!sourceNode || !targetNode) {
+      return;
+    }
+
+
+    if (sourceNode.data.type === 'menu_message') {
+      if (targetNode.data.type !== 'text_message') {
+        alert('menu_message só pode se conectar a text_message!');
+        return;
+      }
+    }
+
+
+    if (targetNode.data.type === 'menu_message') {
+      setEdges((eds) => addEdge({ ...params, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
+      return;
+    }
+
+
+    const existingEdges = edges.filter(edge => edge.source === params.source);
+    if (existingEdges.length > 0 && sourceNode.data.type !== 'menu_message') {
+      alert('Cada nó pode ter apenas uma conexão de saída, exceto menu_message!');
+      return;
+    }
+
+    setEdges((eds) => addEdge({ ...params, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
+  }, [nodes, edges, setEdges, handleDeleteEdge]);
+
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <Sidebar />
@@ -107,7 +139,7 @@ export function FlowEditor() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={(params) => setEdges((eds) => addEdge({ ...params, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds))}
+          onConnect={handleConnect}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         >
@@ -119,3 +151,5 @@ export function FlowEditor() {
     </div>
   );
 };
+
+

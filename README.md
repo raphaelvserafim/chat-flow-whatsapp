@@ -1,8 +1,8 @@
-# Flow
+# theflow
 
 ![Flow](https://s3.ezgif.com/tmp/ezgif-3-7b3c707713.gif)
 
-**Flow** é um projeto que facilita a criação de bots para WhatsApp e Telegram usando uma interface de arrastar e soltar para criar fluxos de conversação. É uma maneira simples de criar bots complexos sem precisar escrever código.
+**theflow** é um projeto que facilita a criação de bots para WhatsApp e Telegram usando uma interface de arrastar e soltar para criar fluxos de conversação. É uma maneira simples de criar bots complexos sem precisar escrever código.
 
 ## Recursos
 
@@ -20,6 +20,6 @@ Atualmente, o projeto está focado apenas no front-end, permitindo a criação e
 Para começar a usar o Flow, clone o repositório e instale as dependências:
 
 ```bash
-git clone https://github.com/raphaelvserafim/chat-flow-whatsapp
+git clone https://github.com/raphaelvserafim/theflow-chat
 cd chat-flow-whatsapp
 npm install

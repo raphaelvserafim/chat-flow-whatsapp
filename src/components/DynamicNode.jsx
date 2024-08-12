@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Handle } from 'react-flow-renderer';
 import { IconButton, Tooltip, Menu, MenuItem } from '@mui/material';
 import { Add as AddIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
-import { iconMap, messageTypes } from '../constant';
+import { iconMap, messageTypes } from '@theflow/constant';
 
 export function DynamicNode({ id, data }) {
   const { outputs = [], type, onDelete, onAddConnection } = data || {};

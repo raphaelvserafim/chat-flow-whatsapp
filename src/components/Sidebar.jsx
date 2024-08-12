@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Box, Tabs, Tab, Divider, IconButton, Grid, Typography } from '@mui/material';
+import { Box, Tabs, Tab, Divider, IconButton, Typography } from '@mui/material';
 import SmsIcon from '@mui/icons-material/Sms';
 import AppsIcon from '@mui/icons-material/Apps';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
-import { messageTypes, specialItems } from '../constant';
-import { MessageType } from './MessageType';
-import { TabLabel } from './TabLabel';
+import { messageTypes, specialItems } from '@theflow/constant';
+import { TabLabel, MessageType } from '@theflow/components';
 
 export function Sidebar() {
   const [tab, setTab] = useState('messages');

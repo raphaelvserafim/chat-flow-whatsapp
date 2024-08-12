@@ -1,13 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import ReactFlow, { Background, addEdge, useEdgesState, useNodesState, Position, Controls, MiniMap, ReactFlowProvider, useReactFlow } from 'react-flow-renderer';
+import React, { useState, useCallback } from 'react';
+import ReactFlow, { Background, addEdge, useEdgesState, useNodesState, Position, Controls, MiniMap, } from 'react-flow-renderer';
 import { useDrop } from 'react-dnd';
 
-import "../assets/css/flow.css";
+import "@theflow/assets/css/flow.css";
 
-import { Sidebar } from './Sidebar';
-import { DynamicNode } from './DynamicNode';
-import { ItemTypes } from '../constant';
-import { CustomEdge } from './CustomEdge';
+import { Sidebar, DynamicNode, CustomEdge } from '@theflow/components';
+import { ItemTypes } from '@theflow/constant';
 
 const nodeTypes = {
   dynamic: DynamicNode,

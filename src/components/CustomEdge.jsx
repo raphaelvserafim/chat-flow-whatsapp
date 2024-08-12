@@ -34,7 +34,7 @@ export function CustomEdge({
   });
 
   return (
-    <React.Component>
+    <>
       <path
         id={id}
         style={{
@@ -66,6 +66,6 @@ export function CustomEdge({
           </foreignObject>
         </g>
       )}
-    </React.Component>
+    </>
   );
 }

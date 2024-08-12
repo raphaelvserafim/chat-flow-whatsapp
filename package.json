@@ -1,5 +1,5 @@
 {
-  "name": "chat-flow-wpp",
+  "name": "theflow-chat",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -17,11 +17,12 @@
     "react-dom": "^18.3.1",
     "react-flow-renderer": "^10.3.17",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "@craco/craco": "^7.1.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "craco start",
+    "build": "craco build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

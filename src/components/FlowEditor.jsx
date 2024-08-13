@@ -4,7 +4,7 @@ import { useDrop } from 'react-dnd';
 
 import "@theflow/assets/css/flow.css";
 
-import { Sidebar, DynamicNode, CustomEdge } from '@theflow/components';
+import { DynamicNode, CustomEdge } from '@theflow/components';
 import { ItemTypes } from '@theflow/constant';
 import { toast } from 'react-toastify';
 
@@ -16,18 +16,15 @@ const edgeTypes = {
   custom: CustomEdge,
 };
 
-const savedNodes = localStorage.getItem('nodes');
-const savedEdges = localStorage.getItem('edges');
 
-
-export function FlowEditor() {
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(savedNodes ? JSON.parse(savedNodes) : []);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(savedEdges ? JSON.parse(savedEdges) : []);
+export function FlowEditor(props) {
+  const [nodes, setNodes, onNodesChange] = useNodesState(props?.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(props?.edges);
   const [nextNodeId, setNextNodeId] = useState(() => {
     const savedNodeId = localStorage.getItem('nextNodeId');
     return savedNodeId ? parseInt(savedNodeId, 10) : 0;
   });
+
 
   const saveToLocalStorage = useCallback(() => {
     try {
@@ -38,6 +35,32 @@ export function FlowEditor() {
       console.error('Error saving to localStorage:', error);
     }
   }, [edges, nextNodeId, nodes]);
+
+
+
+  const handleNodesChange = useCallback((changes) => {
+    if (changes.length > 0) {
+      for (const e of changes) {
+        if (e.type === "position" && !e?.dragging) {
+          const node = nodes.find((node) => node.id === e?.id);
+          props.save({ type: e.type, node });
+        }
+        if (e.type === "remove") {
+          props.save({ type: e.type, node: e });
+          console.log("remove", e);
+        }
+      }
+    }
+
+    onNodesChange(changes);
+
+  }, [nodes, onNodesChange, props]);
+
+  const handleEdgesChange = useCallback((changes) => {
+    console.log({ changes });
+    onEdgesChange(changes);
+  }, [onEdgesChange]);
+
 
 
   useEffect(() => {
@@ -86,6 +109,7 @@ export function FlowEditor() {
     setNextNodeId((prevNodeId) => prevNodeId + 1);
   }, [nextNodeId, handleDeleteNode, setNodes, setEdges, handleDeleteEdge]);
 
+
   const [{ isOver }, drop] = useDrop({
     accept: Object.values(ItemTypes),
     drop: (item, monitor) => {
@@ -94,7 +118,6 @@ export function FlowEditor() {
       const newId = nextNodeId.toString();
       const clientOffset = monitor.getClientOffset();
       const { x, y } = clientOffset || { x: 0, y: 0 };
-
       const newNode = {
         id: newId,
         data: {
@@ -149,23 +172,20 @@ export function FlowEditor() {
   }, [nodes, edges, setEdges, handleDeleteEdge]);
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar />
-      <div ref={drop} style={{ flex: 1, position: 'relative' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={handleConnect}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-        >
-          <Background />
-          <Controls />
-          <MiniMap />
-        </ReactFlow>
-      </div>
+    <div ref={drop} style={{ flex: 1 }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onConnect={handleConnect}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+      >
+        <Background />
+        <Controls />
+        <MiniMap />
+      </ReactFlow>
     </div>
   );
 }

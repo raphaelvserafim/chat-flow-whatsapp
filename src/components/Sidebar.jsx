@@ -68,7 +68,7 @@ export function Sidebar() {
             letterSpacing: '1px',
           }}
         >
-          ::FLOW::
+          ::theflow::
         </Typography>
         <Divider />
         <Tabs

@@ -37,6 +37,7 @@ export function DynamicNode({ id, data }) {
   };
 
   const isMenuMessage = type === 'menu_message';
+  const isEnd = type === 'end';
   const open = Boolean(anchorEl);
 
   const label = messageTypes.find((e) => e.type === type)?.label || 'Node';
@@ -54,17 +55,16 @@ export function DynamicNode({ id, data }) {
         className="handle-target"
       />
 
-      {outputs.map((_, index) => (
+      {!Boolean(isEnd) && (
         <Handle
-          key={`source-${index}`}
           type="source"
           position="right"
-          id={`source-${index}`}
+          id={`source`}
           className="handle-source"
         />
-      ))}
+      )}
 
-      {isMenuMessage && (
+      {/* {isMenuMessage && (
         <Tooltip title="Add output" arrow>
           <IconButton
             className="add-output-button"
@@ -75,7 +75,7 @@ export function DynamicNode({ id, data }) {
             <AddIcon />
           </IconButton>
         </Tooltip>
-      )}
+      )} */}
 
       <div className="node-actions">
         <Tooltip title="Opções" arrow>

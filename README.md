@@ -1,6 +1,6 @@
-# theflow
-
-![Flow](https://s3.ezgif.com/tmp/ezgif-3-7b3c707713.gif)
+# Theflow
+ 
+<img src="public/ScreenRecording.gif"   width="500"/>
 
 **theflow** é um projeto que facilita a criação de bots para WhatsApp e Telegram usando uma interface de arrastar e soltar para criar fluxos de conversação. É uma maneira simples de criar bots complexos sem precisar escrever código.
 

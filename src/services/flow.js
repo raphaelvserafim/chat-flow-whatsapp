@@ -39,5 +39,14 @@ export class FlowService {
     }
   }
 
+
+  static async connectEdges(code, data) {
+    try {
+      const response = await httpService.post(environment.API.FLOW.INFO + "/" + code + "/edges", data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }
 

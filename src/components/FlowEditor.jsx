@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ReactFlow, { Background, addEdge, useEdgesState, useNodesState, Position, Controls, MiniMap } from 'react-flow-renderer';
 import { useDrop } from 'react-dnd';
 
@@ -21,16 +21,7 @@ const edgeTypes = {
 
 export function FlowEditor(props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(props?.edges);
-
-  const saveToLocalStorage = useCallback(() => {
-    try {
-      // localStorage.setItem('nodes', JSON.stringify(nodes));
-      // localStorage.setItem('edges', JSON.stringify(edges));
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-    }
-  }, [edges, nodes]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
 
   const handleNodesChange = useCallback((changes) => {
@@ -53,11 +44,6 @@ export function FlowEditor(props) {
   const handleEdgesChange = useCallback((changes) => {
     onEdgesChange(changes);
   }, [onEdgesChange]);
-
-
-  useEffect(() => {
-    saveToLocalStorage();
-  }, [nodes, edges, saveToLocalStorage]);
 
 
   const handleDeleteNode = useCallback((nodeId) => {
@@ -136,7 +122,14 @@ export function FlowEditor(props) {
         setNodes((nds) => [...nds, processNodeData(node)]);
       }
     }
-  }, [processNodeData, props?.nodes, setNodes]);
+
+    if (props?.edges && props?.edges.length > 0) {
+      for (const edge of props?.edges) {
+        setEdges((eds) => addEdge({ ...{ source: edge.source, target: edge.target, }, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
+      }
+    }
+
+  }, [handleDeleteEdge, processNodeData, props?.edges, props?.nodes, setEdges, setNodes]);
 
 
 

@@ -13,8 +13,13 @@ export function CustomEdge({
   targetPosition,
   style = {},
   markerEnd,
-  onEdgeRemove,
+  data,
+  source,
+  target
 }) {
+
+  const { onEdgeRemove } = data || {};
+
   const [isEditing, setIsEditing] = useState(false);
 
   const edgePath = getBezierPath({
@@ -56,7 +61,7 @@ export function CustomEdge({
                 color="error"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdgeRemove(id);
+                  onEdgeRemove({ id, source, target });
                 }}
                 style={{ backgroundColor: 'white' }}
               >

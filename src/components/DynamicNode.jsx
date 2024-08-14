@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Handle } from 'react-flow-renderer';
 import { IconButton, Tooltip, Menu, MenuItem } from '@mui/material';
 import { Add as AddIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
-import { iconMap, messageTypes } from '@theflow/constant';
+import { iconMap, messageTypes, specialItems } from '@theflow/constant';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 export function DynamicNode({ id, data }) {
   const { outputs = [], type, onDelete, onAddConnection } = data || {};
@@ -40,7 +42,11 @@ export function DynamicNode({ id, data }) {
   const isEnd = type === 'end';
   const open = Boolean(anchorEl);
 
-  const label = messageTypes.find((e) => e.type === type)?.label || 'Node';
+  let label = messageTypes.find((e) => e.type === type)?.label;
+  if (!label) {
+    label = specialItems.find((e) => e.type === type)?.label;
+  }
+
 
   return (
     <div className={`node-container ${isMenuMessage ? 'menu-message' : ''}`}>
@@ -93,8 +99,8 @@ export function DynamicNode({ id, data }) {
           open={open}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={handleEdit}>Editar</MenuItem>
-          <MenuItem onClick={handleDelete}>Deletar</MenuItem>
+          <MenuItem onClick={handleEdit}><EditIcon/> Editar</MenuItem>
+          <MenuItem onClick={handleDelete}><DeleteIcon /> Deletar</MenuItem>
         </Menu>
       </div>
 

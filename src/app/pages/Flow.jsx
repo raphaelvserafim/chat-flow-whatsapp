@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Grid } from '@mui/material';
+
 import Cookies from "js-cookie";
 
-// Definir um cookie
-
+import environment from '@theflow/configs/environment';
 import { FlowEditor, Sidebar } from '@theflow/components';
-import { Grid } from '@mui/material';
 import { FlowService } from '@theflow/services/flow';
+
+
 export function Flow() {
-  Cookies.set("xthex_xflx_xowx", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjM1OTY3NjAsImV4cCI6MTcyNDIwMTU2MH0.jhdTdxHmwLalhRYBVC75HtZFJ1nLMG6Kr7TafTRECHw");
+
+  Cookies.set(environment.COOKIES.SESSION, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjM1OTY3NjAsImV4cCI6MTcyNDIwMTU2MH0.jhdTdxHmwLalhRYBVC75HtZFJ1nLMG6Kr7TafTRECHw");
 
   const { code } = useParams();
   const [savedNodes, setSavedNodes] = useState([]);
@@ -16,7 +19,6 @@ export function Flow() {
 
 
   const save = async (data) => {
-    console.log({ data });
 
     if (data?.type === "add") {
       try {
@@ -63,6 +65,16 @@ export function Flow() {
     if (data?.type === "connect") {
       try {
         const response = await FlowService.connectEdges(code, data.params);
+        return response.status === 200;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+
+    if (data?.type === "deleteEdge") {
+      try {
+        const response = await FlowService.deleteEdges(code, data?.source, data?.target);
         return response.status === 200;
       } catch (error) {
         console.error(error);

@@ -47,14 +47,21 @@ export function FlowEditor(props) {
 
 
   const handleDeleteNode = useCallback((nodeId) => {
+    console.log({nodeId})
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-  }, [setNodes, setEdges]);
+
+    props.save({ type: "remove", node: { id: nodeId } });
+
+  }, [setNodes, setEdges, props]);
 
 
-  const handleDeleteEdge = useCallback((edgeId) => {
-    setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
-  }, [setEdges]);
+  const handleDeleteEdge = useCallback((event) => {
+    setEdges((eds) => eds.filter((edge) => edge.id !== event.id));
+    props.save({ type: "deleteEdge", source: event.source, target: event.target }).then((e) => {
+      console.log({ e })
+    });
+  }, [props, setEdges]);
 
 
   const generateId = useCallback(() => {
@@ -116,23 +123,6 @@ export function FlowEditor(props) {
   }, [addConnection, handleDeleteNode])
 
 
-  useEffect(() => {
-    if (props?.nodes && props?.nodes.length > 0) {
-      for (const node of props?.nodes) {
-        setNodes((nds) => [...nds, processNodeData(node)]);
-      }
-    }
-
-    if (props?.edges && props?.edges.length > 0) {
-      for (const edge of props?.edges) {
-        setEdges((eds) => addEdge({ ...{ source: edge.source, target: edge.target, }, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
-      }
-    }
-
-  }, [handleDeleteEdge, processNodeData, props?.edges, props?.nodes, setEdges, setNodes]);
-
-
-
   const [{ isOver }, drop] = useDrop({
     accept: Object.values(ItemTypes),
     drop: (item, monitor) => {
@@ -190,15 +180,39 @@ export function FlowEditor(props) {
       return;
     }
 
-    setEdges((eds) => addEdge({ ...params, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
-
+    setEdges((eds) => addEdge({
+      ...params,
+      animated: true,
+      type: 'custom',
+      data: { onEdgeRemove: handleDeleteEdge, },
+    }, eds));
 
     props.save({ type: "connect", params }).then((e) => {
       console.log(e);
-
     });
 
   }, [nodes, edges, setEdges, props, handleDeleteEdge]);
+
+
+  useEffect(() => {
+    if (props?.nodes && props?.nodes.length > 0) {
+      for (const node of props?.nodes) {
+        setNodes((nds) => [...nds, processNodeData(node)]);
+      }
+    }
+
+    if (props?.edges && props?.edges.length > 0) {
+      for (const edge of props?.edges) {
+        setEdges((eds) => addEdge({
+          ...{ source: edge.source, target: edge.target },
+          animated: true,
+          data: { onEdgeRemove: handleDeleteEdge, },
+          type: 'custom'
+        }, eds));
+      }
+    }
+
+  }, [handleDeleteEdge, processNodeData, props?.edges, props?.nodes, setEdges, setNodes]);
 
   return (
     <div ref={drop} style={{ flex: 1 }}>

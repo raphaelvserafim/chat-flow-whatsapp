@@ -48,5 +48,16 @@ export class FlowService {
       console.error(error);
     }
   }
+
+
+  static async deleteEdges(code, source, target) {
+    try {
+      const response = await httpService.delete(environment.API.FLOW.INFO + "/" + code + "/edges/" + source + "/" + target);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
 }
 

@@ -16,13 +16,45 @@ export function Flow() {
 
   const savedEdges = localStorage.getItem('edges');
 
-  const save = (data) => {
-    console.log({ data });
-    return new Promise((resolve, reject) => {
+  const save = async (data) => {
+    console.log(data);
 
-      resolve(true);
-    });
+    if (data?.type === "add") {
+      try {
+        const response = await FlowService.saveNodes(code, {
+          id: data.id,
+          type: data.item.type,
+          position: {
+            x: data.position.x,
+            y: data.position.y,
+          },
+        });
+        return response.status === 200;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+
+    if (data?.type === "position") {
+      try {
+        const response = await FlowService.updateNodes(code, data.node.id, {
+          position: {
+            x: data.node.position.x,
+            y: data.node.position.y,
+          },
+        });
+        return response.status === 200;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+
+
+    return false;
   };
+
 
   React.useEffect(() => {
     if (code) {

@@ -11,4 +11,26 @@ export class FlowService {
       console.error(error);
     }
   }
+
+  static async saveNodes(code, data) {
+    try {
+      const response = await httpService.post(environment.API.FLOW.INFO + "/" + code + "/nodes", data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  static async updateNodes(code, code_nodes, data) {
+    try {
+      const response = await httpService.put(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes, data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  
+
 }
+

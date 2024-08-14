@@ -138,7 +138,7 @@ export function FlowEditor(props) {
     }
   }, [processNodeData, props?.nodes, setNodes]);
 
-  
+
 
   const [{ isOver }, drop] = useDrop({
     accept: Object.values(ItemTypes),
@@ -164,7 +164,10 @@ export function FlowEditor(props) {
 
       setNodes((nds) => [...nds, newNode]);
       props.save({ type: "add", id: newId, item, position: { x, y } }).then((e) => {
-
+        if (!Boolean(e)) {
+          toast.error('Erro na API!');
+          handleDeleteNode(newId);
+        }
       });
     },
     collect: (monitor) => ({
@@ -173,7 +176,7 @@ export function FlowEditor(props) {
   });
 
   const handleConnect = useCallback((params) => {
-    console.log({ params })
+
     const sourceNode = nodes.find((node) => node.id === params.source);
     const targetNode = nodes.find((node) => node.id === params.target);
 
@@ -188,11 +191,6 @@ export function FlowEditor(props) {
       }
     }
 
-    if (targetNode.data.type === 'menu_message') {
-      setEdges((eds) => addEdge({ ...params, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
-      return;
-    }
-
     const existingEdges = edges.filter(edge => edge.source === params.source);
     if (existingEdges.length > 0 && sourceNode.data.type !== 'menu_message') {
       toast.error('Cada nó pode ter apenas uma conexão de saída, exceto menu_message!');
@@ -201,7 +199,13 @@ export function FlowEditor(props) {
 
     setEdges((eds) => addEdge({ ...params, animated: true, type: 'custom', data: { onEdgeRemove: handleDeleteEdge } }, eds));
 
-  }, [nodes, edges, setEdges, handleDeleteEdge]);
+
+    props.save({ type: "connect", params }).then((e) => {
+      console.log(e);
+
+    });
+
+  }, [nodes, edges, setEdges, props, handleDeleteEdge]);
 
   return (
     <div ref={drop} style={{ flex: 1 }}>

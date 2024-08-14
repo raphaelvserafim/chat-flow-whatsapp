@@ -17,7 +17,7 @@ export function Flow() {
   const savedEdges = localStorage.getItem('edges');
 
   const save = async (data) => {
-    console.log(data);
+    console.log({ data });
 
     if (data?.type === "add") {
       try {
@@ -51,6 +51,15 @@ export function Flow() {
       }
     }
 
+    if (data?.type === "remove") {
+      try {
+        const response = await FlowService.deleteNodes(code, data.node.id);
+        return response.status === 200;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
 
     return false;
   };

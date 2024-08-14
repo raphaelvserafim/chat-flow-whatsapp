@@ -30,7 +30,14 @@ export class FlowService {
     }
   }
 
-  
+  static async deleteNodes(code, code_nodes) {
+    try {
+      const response = await httpService.delete(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
 }
 

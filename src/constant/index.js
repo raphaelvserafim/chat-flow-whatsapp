@@ -5,7 +5,8 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import MenuIcon from '@mui/icons-material/Menu';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
+import HttpIcon from '@mui/icons-material/Http';
+import CallEndIcon from '@mui/icons-material/CallEnd';
 
 const itemConfig = {
   TEXT_MESSAGE: { label: 'Texto', Icon: TextFormatIcon, category: 'message' },
@@ -15,7 +16,8 @@ const itemConfig = {
   DOCUMENT_MESSAGE: { label: 'Documento', Icon: DescriptionIcon, category: 'message' },
   MENU_MESSAGE: { label: 'Menu', Icon: MenuIcon, category: 'message' },
   AI_MESSAGE: { label: 'AI', Icon: AutoFixHighIcon, category: 'special' },
-  API_REQUEST: { label: 'Request API', Icon: RequestQuoteIcon, category: 'special' },
+  API_REQUEST: { label: 'Request API', Icon: HttpIcon, category: 'special' },
+  END: { label: 'Encerrar', Icon: CallEndIcon, category: 'special' },
 };
 
 export const iconMap = Object.fromEntries(

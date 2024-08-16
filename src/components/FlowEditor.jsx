@@ -23,16 +23,23 @@ export function FlowEditor(props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-
   const handleNodesChange = useCallback((changes) => {
     if (changes.length > 0) {
       for (const e of changes) {
         if (e.type === "position" && !e?.dragging) {
           const node = nodes.find((node) => node.id === e?.id);
-          props.save({ type: e.type, node });
+          props.save({ type: e.type, node }).then(({ status, message }) => {
+            if (status !== 200) {
+              toast.error(message || "ERROR API");
+            }
+          })
         }
         if (e.type === "remove") {
-          props.save({ type: e.type, node: e });
+          props.save({ type: e.type, node: e }).then(({ status, message }) => {
+            if (status !== 200) {
+              toast.error(message || "ERROR API");
+            }
+          })
         }
       }
     }
@@ -47,20 +54,26 @@ export function FlowEditor(props) {
 
 
   const handleDeleteNode = useCallback((nodeId) => {
-    console.log({nodeId})
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-
-    props.save({ type: "remove", node: { id: nodeId } });
+    
+    props.save({ type: "remove", node: { id: nodeId } }).then(({ status, message }) => {
+      console.log({ status, message })
+      if (status !== 200) {
+        toast.error(message || "ERROR API");
+      }
+    })
 
   }, [setNodes, setEdges, props]);
 
 
   const handleDeleteEdge = useCallback((event) => {
     setEdges((eds) => eds.filter((edge) => edge.id !== event.id));
-    props.save({ type: "deleteEdge", source: event.source, target: event.target }).then((e) => {
-      console.log({ e })
-    });
+    props.save({ type: "deleteEdge", source: event.source, target: event.target }).then(({ status, message }) => {
+      if (status !== 200) {
+        toast.error(message || "ERROR API");
+      }
+    })
   }, [props, setEdges]);
 
 
@@ -103,7 +116,6 @@ export function FlowEditor(props) {
 
 
 
-
   const processNodeData = useCallback((data) => {
     const node = {
       id: data.id,
@@ -111,16 +123,22 @@ export function FlowEditor(props) {
         label: 'Node',
         type: data.type,
         outputs: ['output-0'],
+        text_content: data?.text_content || null,
         onDelete: handleDeleteNode,
         onAddConnection: addConnection,
+        onEdit: () => props?.onEdit(data.id),
       },
-      position: JSON.parse(data?.position),
+      position: {
+        x: data.position_x,
+        y: data.position_y,
+      },
       type: 'dynamic',
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
+      markerStart: data.type === 'start',
     };
     return node;
-  }, [addConnection, handleDeleteNode])
+  }, [addConnection, handleDeleteNode, props]);
 
 
   const [{ isOver }, drop] = useDrop({
@@ -138,6 +156,7 @@ export function FlowEditor(props) {
           outputs: ['output-0'],
           onDelete: handleDeleteNode,
           onAddConnection: addConnection,
+          onEdit: () => props?.onEdit(newId),
         },
         position: { x, y },
         type: 'dynamic',
@@ -146,12 +165,14 @@ export function FlowEditor(props) {
       };
 
       setNodes((nds) => [...nds, newNode]);
-      props.save({ type: "add", id: newId, item, position: { x, y } }).then((e) => {
-        if (!Boolean(e)) {
-          toast.error('Erro na API!');
+
+      props.save({ type: "add", id: newId, item, position: { x, y } }).then(({ status, message }) => {
+        if (status !== 200) {
+          toast.error(message || "ERROR API");
           handleDeleteNode(newId);
         }
       });
+
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
@@ -187,8 +208,10 @@ export function FlowEditor(props) {
       data: { onEdgeRemove: handleDeleteEdge, },
     }, eds));
 
-    props.save({ type: "connect", params }).then((e) => {
-      console.log(e);
+    props.save({ type: "connect", params }).then(({ status, message }) => {
+      if (status !== 200) {
+        toast.error(message || "ERROR API");
+      }
     });
 
   }, [nodes, edges, setEdges, props, handleDeleteEdge]);
@@ -206,7 +229,10 @@ export function FlowEditor(props) {
         setEdges((eds) => addEdge({
           ...{ source: edge.source, target: edge.target },
           animated: true,
-          data: { onEdgeRemove: handleDeleteEdge, },
+          data: {
+            onEdgeRemove: handleDeleteEdge,
+
+          },
           type: 'custom'
         }, eds));
       }

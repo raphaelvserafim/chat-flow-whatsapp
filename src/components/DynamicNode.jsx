@@ -7,7 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 export function DynamicNode({ id, data }) {
-  const { outputs = [], type, onDelete, onAddConnection } = data || {};
+  const { outputs = [], type, onDelete, onAddConnection, onEdit } = data || {};
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenuClick = (event) => {
@@ -25,9 +25,7 @@ export function DynamicNode({ id, data }) {
     handleMenuClose();
   };
 
-  const handleEdit = () => {
-    handleMenuClose();
-  };
+
 
   const handleDelete = () => {
     try {
@@ -40,6 +38,8 @@ export function DynamicNode({ id, data }) {
 
   const isMenuMessage = type === 'menu_message';
   const isEnd = type === 'end';
+  const isStart = type === 'start';
+
   const open = Boolean(anchorEl);
 
   let label = messageTypes.find((e) => e.type === type)?.label;
@@ -54,18 +54,20 @@ export function DynamicNode({ id, data }) {
         {iconMap[type]} <span className="name">{label}</span>
       </div>
 
-      <Handle
-        type="target"
-        position="left"
-        id="target"
-        className="handle-target"
-      />
+      {!Boolean(isStart) && (
+        <Handle
+          type="target"
+          position="left"
+          id="target"
+          className="handle-target"
+        />
+      )}
 
       {!Boolean(isEnd) && (
         <Handle
           type="source"
           position="right"
-          id={`source`}
+          id="source"
           className="handle-source"
         />
       )}
@@ -99,12 +101,30 @@ export function DynamicNode({ id, data }) {
           open={open}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={handleEdit}><EditIcon/> Editar</MenuItem>
-          <MenuItem onClick={handleDelete}><DeleteIcon /> Deletar</MenuItem>
+          <MenuItem
+            onClick={() => { onEdit(); handleMenuClose(); }}
+            style={{ fontSize: 13 }}
+          >
+            <EditIcon style={{ fontSize: 17, marginRight: 8 }} />
+            Editar
+          </MenuItem>
+          {!Boolean(isStart) && (
+            <MenuItem
+              onClick={handleDelete}
+              style={{ fontSize: 13 }}
+            >
+              <DeleteIcon style={{ fontSize: 17, marginRight: 8 }} />
+              Deletar
+            </MenuItem>
+          )}
         </Menu>
-      </div>
 
-      <div className="node-label">{data.label}</div>
-    </div>
+      </div>
+      {
+        data?.text_content && (
+          <div className='text_content'>{data?.text_content}</div>
+        )
+      }
+    </div >
   );
 };

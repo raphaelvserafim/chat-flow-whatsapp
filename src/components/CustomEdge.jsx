@@ -45,7 +45,7 @@ export function CustomEdge({
         style={{
           ...style,
           cursor: 'pointer',
-          strokeWidth: 2,
+          strokeWidth: 1,
         }}
         className="react-flow__edge-path"
         d={edgePath}

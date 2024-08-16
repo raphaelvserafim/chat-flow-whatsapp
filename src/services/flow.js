@@ -30,6 +30,15 @@ export class FlowService {
     }
   }
 
+  static async updateContentNodes(code, code_nodes, data) {
+    try {
+      const response = await httpService.put(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes + "/content", data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   static async deleteNodes(code, code_nodes) {
     try {
       const response = await httpService.delete(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes);

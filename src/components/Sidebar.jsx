@@ -137,9 +137,10 @@ export function Sidebar() {
         {tab === 'messages' && messageTypes.map(({ type, label, Icon }) => (
           <MessageType key={type} type={type} label={label} Icon={Icon} />
         ))}
-        {tab === 'special' && specialItems.map(({ type, label, Icon }) => (
-          <MessageType key={type} type={type} label={label} Icon={Icon} />
-        ))}
+        {tab === 'special' && specialItems.map(({ type, label, Icon, show }) => {
+          return show ? <MessageType key={type} type={type} label={label} Icon={Icon} /> : null;
+        })}
+
         {tab === 'settings' && <>EM BREVE</>}
       </Box>
     </Box>

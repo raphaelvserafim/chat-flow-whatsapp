@@ -1,9 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, Grid, IconButton, InputAdornment, Popover, TextField } from '@mui/material';
 
 import Cookies from "js-cookie";
-
 import environment from '@theflow/configs/environment';
 import { FlowEditor, Sidebar } from '@theflow/components';
 import { FlowService } from '@theflow/services/flow';
@@ -14,7 +13,6 @@ import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 
 Cookies.set(environment.COOKIES.SESSION, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjM1OTY3NjAsImV4cCI6MTcyNDIwMTU2MH0.jhdTdxHmwLalhRYBVC75HtZFJ1nLMG6Kr7TafTRECHw");
 
-
 export function Flow() {
   const { code } = useParams();
   const [savedNodes, setSavedNodes] = useState([]);
@@ -23,21 +21,31 @@ export function Flow() {
   const [dataNodes, setDataNodes] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [textMessage, setTextMessage] = useState(null);
+  const [searching, setSearching] = useState(true);
   const emojiAnchorRef = useRef(null);
 
-  const toggleEmojiPicker = () => {
-    setShowEmojiPicker(!showEmojiPicker);
-  };
+  const toggleEmojiPicker = useCallback(() => {
+    setShowEmojiPicker((prev) => !prev);
+  }, []);
 
-  const onEmojiClick = (event) => {
+  const onEmojiClick = useCallback((event) => {
     setTextMessage((prevText) => prevText + event.emoji);
-  };
+  }, []);
 
-
-  const save = async (data) => {
-
+  const save = useCallback(async (data) => {
+    console.log({ data })
     if (data?.type === "add") {
       try {
+        setSavedNodes((nds) => [
+          ...nds,
+          {
+            id: data.id,
+            position_x: data.position.x,
+            position_y: data.position.y,
+            text_content: null,
+            type: data.item.type,
+          },
+        ]);
         const response = await FlowService.saveNodes(code, {
           id: data.id,
           type: data.item.type,
@@ -62,6 +70,17 @@ export function Flow() {
             y: data.node.position.y,
           },
         });
+        setSavedNodes((nds) =>
+          nds.map((node) =>
+            node.id === data.node.id
+              ? {
+                ...node,
+                position_x: data.node.position.x,
+                position_y: data.node.position.y,
+              }
+              : node
+          )
+        );
         return response;
       } catch (error) {
         console.error(error);
@@ -73,7 +92,12 @@ export function Flow() {
     if (data?.type === "remove") {
       try {
         const response = await FlowService.deleteNodes(code, data.node.id);
-        console.log(response)
+        if (response.status === 200) {
+          setSavedNodes((nds) => nds.filter((node) => node.id !== data.node.id));
+          setSavedEdges((eds) => eds.filter((edge) => edge.source !== data.node.id && edge.target !== data.node.id));
+        } else {
+          toast.error(response.message || "Erro ao remover o nó");
+        }
         return response;
       } catch (error) {
         console.error(error);
@@ -84,6 +108,13 @@ export function Flow() {
 
     if (data?.type === "connect") {
       try {
+        setSavedEdges((nds) => [
+          ...nds,
+          {
+            source: data.params.source,
+            target: data.params.target,
+          },
+        ]);
         const response = await FlowService.connectEdges(code, data.params);
         return response;
       } catch (error) {
@@ -95,6 +126,11 @@ export function Flow() {
 
     if (data?.type === "deleteEdge") {
       try {
+        setSavedEdges((edges) =>
+          edges.filter(
+            (edge) => edge.source !== data.source || edge.target !== data.target
+          )
+        );
         const response = await FlowService.deleteEdges(code, data?.source, data?.target);
         return response;
       } catch (error) {
@@ -103,27 +139,54 @@ export function Flow() {
         return false;
       }
     }
-  };
 
+    if (data?.type === "addConnection") {
+      const _node = savedNodes.find((e) => e.id === data.sourceId);
+      const _edges = savedEdges.filter((e => e.source === data.sourceId));
+      console.log({ _edges })
 
-  const handleEdit = (id) => {
+      const { position_x, position_y, id } = _node;
+      save({
+        id: data.id,
+        text_content: null,
+        type: 'add',
+        item: {
+          type: 'text_message',
+        },
+        position: {
+          x: position_x + 300,
+          y: ((position_y) + (103 * _edges.length)),
+        },
+      });
+      save({
+        type: 'connect',
+        params: {
+          source: id,
+          target: data.id,
+        },
+      });
+    }
+
+  }, [code, savedEdges, savedNodes]);
+
+  const handleEdit = useCallback((event) => {
     setOpenModal(true);
-    const node = savedNodes.find((e) => e.id === id);
+    const node = savedNodes.find((e) => e.id === event.id);
     if (node) {
       setTextMessage(node?.text_content);
       setDataNodes(node);
     }
-  }
+  }, [savedNodes]);
 
-  const onChangetextMessage = (event) => {
+  const onChangetextMessage = useCallback((event) => {
     setTextMessage(event.target.value);
-  }
+  }, []);
 
-  const saveText = async () => {
+  const saveText = useCallback(async () => {
     try {
       const { id } = dataNodes;
       const { status, message } = await FlowService.updateContentNodes(code, id, {
-        text_content: textMessage
+        text_content: textMessage,
       });
       if (status === 200) {
         toast.success(message);
@@ -132,26 +195,23 @@ export function Flow() {
         );
         setSavedNodes(updatedNodes);
       }
-
     } catch (error) {
       console.error(error);
       toast.error(error.message);
       return false;
     }
-  }
+  }, [code, dataNodes, savedNodes, textMessage]);
 
-  React.useEffect(() => {
+
+  useEffect(() => {
     if (code) {
+      setSearching(true);
       FlowService.fetchGetFlow(code).then(({ status, nodes, edges }) => {
         if (status === 200) {
-          if (nodes?.length > 0) {
-
-            setSavedNodes(nodes);
-          }
-          if (edges?.length > 0) {
-            setSavedEdges(edges);
-          }
+          setSavedEdges(edges);
+          setSavedNodes(nodes);
         }
+        setSearching(false);
       });
     }
   }, [code]);
@@ -159,13 +219,16 @@ export function Flow() {
   return (
     <Grid style={{ display: 'flex', height: '100vh' }}>
       <Sidebar />
-      <FlowEditor
-        code={code}
-        nodes={savedNodes}
-        edges={savedEdges}
-        save={save}
-        onEdit={handleEdit}
-      />
+      {searching && <>Buscando...</>}
+      {!searching && (
+        <MemoizedFlowEditor
+          code={code}
+          nodes={savedNodes}
+          edges={savedEdges}
+          save={save}
+          onEdit={handleEdit}
+        />
+      )}
 
       <Modal title="Editar" open={openModal} onClose={() => setOpenModal(false)}>
         {dataNodes && dataNodes?.type === "text_message" && (
@@ -182,10 +245,7 @@ export function Flow() {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        ref={emojiAnchorRef}
-                        onClick={toggleEmojiPicker}
-                      >
+                      <IconButton ref={emojiAnchorRef} onClick={toggleEmojiPicker}>
                         <EmojiEmotionsIcon />
                       </IconButton>
                     </InputAdornment>
@@ -209,12 +269,15 @@ export function Flow() {
               <EmojiPicker onEmojiClick={onEmojiClick} />
             </Popover>
             <Grid item md={12} mb={2}>
-              <Button color="success" variant="outlined" onClick={saveText}>Salvar</Button>
+              <Button color="success" variant="outlined" onClick={saveText}>
+                Salvar
+              </Button>
             </Grid>
           </Grid>
         )}
       </Modal>
     </Grid>
-  )
-
+  );
 }
+
+const MemoizedFlowEditor = React.memo(FlowEditor);

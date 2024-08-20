@@ -9,6 +9,7 @@ import { ItemTypes } from '@theflow/constant';
 import { toast } from 'react-toastify';
 import { generateRandomToken } from '@theflow/utils';
 
+
 const nodeTypes = {
   dynamic: DynamicNode,
 };
@@ -17,29 +18,23 @@ const edgeTypes = {
   custom: CustomEdge,
 };
 
-
-
-export function FlowEditor(props) {
+function FlowEditorBase(props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const generateId = useCallback(() => {
+    return `${props?.code}-${generateRandomToken(10)}`;
+  }, [props?.code]);
 
   const handleNodesChange = useCallback((changes) => {
     if (changes.length > 0) {
       for (const e of changes) {
         if (e.type === "position" && !e?.dragging) {
           const node = nodes.find((node) => node.id === e?.id);
-          props.save({ type: e.type, node }).then(({ status, message }) => {
-            if (status !== 200) {
-              toast.error(message || "ERROR API");
-            }
-          })
+          props.save({ type: e.type, node });
         }
         if (e.type === "remove") {
-          props.save({ type: e.type, node: e }).then(({ status, message }) => {
-            if (status !== 200) {
-              toast.error(message || "ERROR API");
-            }
-          })
+          props.save({ type: e.type, node: e });
         }
       }
     }
@@ -47,72 +42,26 @@ export function FlowEditor(props) {
     onNodesChange(changes);
   }, [nodes, onNodesChange, props]);
 
-
   const handleEdgesChange = useCallback((changes) => {
     onEdgesChange(changes);
   }, [onEdgesChange]);
 
 
-  const handleDeleteNode = useCallback((nodeId) => {
-    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-    
-    props.save({ type: "remove", node: { id: nodeId } }).then(({ status, message }) => {
-      console.log({ status, message })
-      if (status !== 200) {
-        toast.error(message || "ERROR API");
-      }
-    })
 
-  }, [setNodes, setEdges, props]);
+  const handleDeleteNode = useCallback((nodeId) => {
+    props.save({ type: "remove", node: { id: nodeId } });
+  }, [props]);
 
 
   const handleDeleteEdge = useCallback((event) => {
-    setEdges((eds) => eds.filter((edge) => edge.id !== event.id));
-    props.save({ type: "deleteEdge", source: event.source, target: event.target }).then(({ status, message }) => {
-      if (status !== 200) {
-        toast.error(message || "ERROR API");
-      }
-    })
-  }, [props, setEdges]);
-
-
-  const generateId = useCallback(() => {
-    return `${props?.code}-${generateRandomToken(10)}`;
-  }, [props?.code])
+    props.save({ type: "deleteEdge", id: event.id, source: event.source, target: event.target });
+  }, [props]);
 
 
   const addConnection = useCallback((sourceId) => {
     const newId = generateId();
-    const newNode = {
-      id: newId,
-      data: {
-        label: 'Node',
-        type: 'text_message',
-        outputs: ['output-0'],
-        onDelete: handleDeleteNode,
-        onAddConnection: addConnection,
-      },
-      position: { x: 509, y: 157 },
-      type: 'dynamic',
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-    };
-
-    setNodes((nds) => [...nds, newNode]);
-    // setEdges((eds) => {
-    //   const newEdge = {
-    //     id: `e${sourceId}-${nextNodeId}`,
-    //     source: sourceId,
-    //     target: nextNodeId.toString(),
-    //     animated: true,
-    //     type: 'custom',
-    //     data: { onEdgeRemove: handleDeleteEdge },
-    //   };
-    //   return [...eds, newEdge];
-    // });
-    // setNextNodeId((prevNodeId) => prevNodeId + 1);
-  }, [generateId, handleDeleteNode, setNodes]);
+    props.save({ type: "addConnection", id: newId, sourceId });
+  }, [generateId, props]);
 
 
 
@@ -126,7 +75,7 @@ export function FlowEditor(props) {
         text_content: data?.text_content || null,
         onDelete: handleDeleteNode,
         onAddConnection: addConnection,
-        onEdit: () => props?.onEdit(data.id),
+        onEdit: () => props?.onEdit({ id: data.id, type: data.type, }),
       },
       position: {
         x: data.position_x,
@@ -141,6 +90,7 @@ export function FlowEditor(props) {
   }, [addConnection, handleDeleteNode, props]);
 
 
+
   const [{ isOver }, drop] = useDrop({
     accept: Object.values(ItemTypes),
     drop: (item, monitor) => {
@@ -148,39 +98,16 @@ export function FlowEditor(props) {
       const newId = generateId();
       const clientOffset = monitor.getClientOffset();
       const { x, y } = clientOffset || { x: 0, y: 0 };
-      const newNode = {
-        id: newId,
-        data: {
-          label: 'Node',
-          type: item.type,
-          outputs: ['output-0'],
-          onDelete: handleDeleteNode,
-          onAddConnection: addConnection,
-          onEdit: () => props?.onEdit(newId),
-        },
-        position: { x, y },
-        type: 'dynamic',
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      };
-
-      setNodes((nds) => [...nds, newNode]);
-
-      props.save({ type: "add", id: newId, item, position: { x, y } }).then(({ status, message }) => {
-        if (status !== 200) {
-          toast.error(message || "ERROR API");
-          handleDeleteNode(newId);
-        }
-      });
-
+      props.save({ type: "add", id: newId, item, position: { x, y } });
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   });
 
-  const handleConnect = useCallback((params) => {
 
+
+  const handleConnect = useCallback((params) => {
     const sourceNode = nodes.find((node) => node.id === params.source);
     const targetNode = nodes.find((node) => node.id === params.target);
 
@@ -201,47 +128,32 @@ export function FlowEditor(props) {
       return;
     }
 
-    setEdges((eds) => addEdge({
-      ...params,
-      animated: true,
-      type: 'custom',
-      data: { onEdgeRemove: handleDeleteEdge, },
-    }, eds));
+    props.save({ type: "connect", params })
 
-    props.save({ type: "connect", params }).then(({ status, message }) => {
-      if (status !== 200) {
-        toast.error(message || "ERROR API");
-      }
-    });
-
-  }, [nodes, edges, setEdges, props, handleDeleteEdge]);
+  }, [nodes, edges, props]);
 
 
   useEffect(() => {
     if (props?.nodes && props?.nodes.length > 0) {
-      for (const node of props?.nodes) {
-        setNodes((nds) => [...nds, processNodeData(node)]);
-      }
+      const _nodes = props.nodes.map(processNodeData);
+      setNodes(_nodes);
     }
 
     if (props?.edges && props?.edges.length > 0) {
-      for (const edge of props?.edges) {
-        setEdges((eds) => addEdge({
-          ...{ source: edge.source, target: edge.target },
-          animated: true,
-          data: {
-            onEdgeRemove: handleDeleteEdge,
-
-          },
-          type: 'custom'
-        }, eds));
-      }
+      const _edges = props.edges.map(edge => ({
+        ...{ source: edge.source, target: edge.target },
+        animated: true,
+        data: {
+          onEdgeRemove: handleDeleteEdge,
+        },
+        type: 'custom'
+      }));
+      setEdges(_edges);
     }
-
-  }, [handleDeleteEdge, processNodeData, props?.edges, props?.nodes, setEdges, setNodes]);
+  }, [props.nodes, props.edges, processNodeData, handleDeleteEdge, setNodes, setEdges]);
 
   return (
-    <div ref={drop} style={{ flex: 1 }}>
+    <div ref={drop} style={{ flex: 1 }} key={props?.code}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -258,3 +170,5 @@ export function FlowEditor(props) {
     </div>
   );
 }
+
+export const FlowEditor = React.memo(FlowEditorBase);

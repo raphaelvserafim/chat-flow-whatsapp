@@ -7,7 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 export function DynamicNode({ id, data }) {
-  const { outputs = [], type, onDelete, onAddConnection, onEdit } = data || {};
+  const { type, onDelete, onAddConnection, onEdit } = data || {};
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenuClick = (event) => {
@@ -19,13 +19,8 @@ export function DynamicNode({ id, data }) {
   };
 
   const handleAddOutput = () => {
-    console.log('Before adding connection:', outputs);
     onAddConnection(id);
-    console.log('After adding connection:', outputs);
-    handleMenuClose();
   };
-
-
 
   const handleDelete = () => {
     try {
@@ -49,7 +44,7 @@ export function DynamicNode({ id, data }) {
 
 
   return (
-    <div className={`node-container ${isMenuMessage ? 'menu-message' : ''}`}>
+    <div className={`node-container ${isMenuMessage ? 'menu-message' : ''}`} key={id}>
       <div className="node-icon">
         {iconMap[type]} <span className="name">{label}</span>
       </div>
@@ -72,18 +67,7 @@ export function DynamicNode({ id, data }) {
         />
       )}
 
-      {/* {isMenuMessage && (
-        <Tooltip title="Add output" arrow>
-          <IconButton
-            className="add-output-button"
-            color="inherit"
-            aria-label="add"
-            onClick={handleAddOutput}
-          >
-            <AddIcon />
-          </IconButton>
-        </Tooltip>
-      )} */}
+
 
       <div className="node-actions">
         <Tooltip title="Opções" arrow>
@@ -118,8 +102,15 @@ export function DynamicNode({ id, data }) {
             </MenuItem>
           )}
         </Menu>
-
       </div>
+      {isMenuMessage && (
+        <Tooltip title="Adicionar opção" arrow>
+          <div className="add-output-button" onClick={handleAddOutput}>
+            <AddIcon />
+          </div>
+        </Tooltip>
+      )}
+
       {
         data?.text_content && (
           <div className='text_content'>{data?.text_content}</div>

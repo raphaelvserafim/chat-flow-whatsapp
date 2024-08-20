@@ -61,11 +61,22 @@
 
 .add-output-button {
   position: absolute;
-  right: -50px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: #545151;
-  color: #fff;
+  right: -15px;
+  top: 37%;
+  background-color: #fff;
+  color: #757575;
+  width: 28px;
+  height: 28px;
+  text-align: center;
+  border-radius: 10%;
+  border: solid 1px #5351511c;
+  cursor: pointer;
+}
+
+.add-output-button .css-i4bv87-MuiSvgIcon-root {
+  top: 7px;
+  position: relative;
+  font-size: 15px;
 }
 
 .node-actions {

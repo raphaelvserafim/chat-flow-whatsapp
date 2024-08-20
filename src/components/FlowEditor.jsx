@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import ReactFlow, { Background, addEdge, useEdgesState, useNodesState, Position, Controls, MiniMap } from 'react-flow-renderer';
+import ReactFlow, { Background, useEdgesState, useNodesState, Position, Controls, MiniMap, useReactFlow } from 'react-flow-renderer';
 import { useDrop } from 'react-dnd';
 
 import "@theflow/assets/css/flow.css";
@@ -8,7 +8,6 @@ import { DynamicNode, CustomEdge } from '@theflow/components';
 import { ItemTypes } from '@theflow/constant';
 import { toast } from 'react-toastify';
 import { generateRandomToken } from '@theflow/utils';
-
 
 const nodeTypes = {
   dynamic: DynamicNode,
@@ -21,6 +20,7 @@ const edgeTypes = {
 function FlowEditorBase(props) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const { project } = useReactFlow();
 
   const generateId = useCallback(() => {
     return `${props?.code}-${generateRandomToken(10)}`;
@@ -46,24 +46,18 @@ function FlowEditorBase(props) {
     onEdgesChange(changes);
   }, [onEdgesChange]);
 
-
-
   const handleDeleteNode = useCallback((nodeId) => {
     props.save({ type: "remove", node: { id: nodeId } });
   }, [props]);
-
 
   const handleDeleteEdge = useCallback((event) => {
     props.save({ type: "deleteEdge", id: event.id, source: event.source, target: event.target });
   }, [props]);
 
-
   const addConnection = useCallback((sourceId) => {
     const newId = generateId();
     props.save({ type: "addConnection", id: newId, sourceId });
   }, [generateId, props]);
-
-
 
   const processNodeData = useCallback((data) => {
     const node = {
@@ -75,7 +69,7 @@ function FlowEditorBase(props) {
         text_content: data?.text_content || null,
         onDelete: handleDeleteNode,
         onAddConnection: addConnection,
-        onEdit: () => props?.onEdit({ id: data.id, type: data.type, }),
+        onEdit: () => props?.onEdit({ id: data.id, type: data.type }),
       },
       position: {
         x: data.position_x,
@@ -89,23 +83,24 @@ function FlowEditorBase(props) {
     return node;
   }, [addConnection, handleDeleteNode, props]);
 
-
-
   const [{ isOver }, drop] = useDrop({
     accept: Object.values(ItemTypes),
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
-      const newId = generateId();
+
       const clientOffset = monitor.getClientOffset();
-      const { x, y } = clientOffset || { x: 0, y: 0 };
-      props.save({ type: "add", id: newId, item, position: { x, y } });
+      if (!clientOffset) return;
+
+      // Usar o método 'project' para converter as coordenadas absolutas para as coordenadas do fluxo
+      const flowCoords = project(clientOffset);
+      const newId = generateId();
+
+      props.save({ type: "add", id: newId, item, position: { x: flowCoords.x, y: flowCoords.y } });
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   });
-
-
 
   const handleConnect = useCallback((params) => {
     const sourceNode = nodes.find((node) => node.id === params.source);
@@ -128,10 +123,9 @@ function FlowEditorBase(props) {
       return;
     }
 
-    props.save({ type: "connect", params })
+    props.save({ type: "connect", params });
 
   }, [nodes, edges, props]);
-
 
   useEffect(() => {
     if (props?.nodes && props?.nodes.length > 0) {

@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { Modal } from '@theflow/components/Modal';
 import EmojiPicker from 'emoji-picker-react';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
+import { ReactFlowProvider } from 'react-flow-renderer';
 
 Cookies.set(environment.COOKIES.SESSION, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjM1OTY3NjAsImV4cCI6MTcyNDIwMTU2MH0.jhdTdxHmwLalhRYBVC75HtZFJ1nLMG6Kr7TafTRECHw");
 
@@ -22,6 +23,8 @@ export function Flow() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [textMessage, setTextMessage] = useState(null);
   const [searching, setSearching] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const emojiAnchorRef = useRef(null);
 
   const toggleEmojiPicker = useCallback(() => {
@@ -169,10 +172,14 @@ export function Flow() {
 
   }, [code, savedEdges, savedNodes]);
 
+
   const handleEdit = useCallback((event) => {
+    setTextMessage(null);
+    setDataNodes(null);
     setOpenModal(true);
     const node = savedNodes.find((e) => e.id === event.id);
     if (node) {
+      console.log({ node })
       setTextMessage(node?.text_content);
       setDataNodes(node);
     }
@@ -182,8 +189,11 @@ export function Flow() {
     setTextMessage(event.target.value);
   }, []);
 
+
+
   const saveText = useCallback(async () => {
     try {
+      setSaving(true);
       const { id } = dataNodes;
       const { status, message } = await FlowService.updateContentNodes(code, id, {
         text_content: textMessage,
@@ -195,6 +205,7 @@ export function Flow() {
         );
         setSavedNodes(updatedNodes);
       }
+      setSaving(false);
     } catch (error) {
       console.error(error);
       toast.error(error.message);
@@ -221,17 +232,19 @@ export function Flow() {
       <Sidebar />
       {searching && <>Buscando...</>}
       {!searching && (
-        <MemoizedFlowEditor
-          code={code}
-          nodes={savedNodes}
-          edges={savedEdges}
-          save={save}
-          onEdit={handleEdit}
-        />
+        <ReactFlowProvider>
+          <MemoizedFlowEditor
+            code={code}
+            nodes={savedNodes}
+            edges={savedEdges}
+            save={save}
+            onEdit={handleEdit}
+          />
+        </ReactFlowProvider>
       )}
 
-      <Modal title="Editar" open={openModal} onClose={() => setOpenModal(false)}>
-        {dataNodes && dataNodes?.type === "text_message" && (
+      <Modal title="Editar" open={openModal} onClose={() => { setOpenModal(false); }}>
+        {dataNodes && (
           <Grid container padding={2} spacing={2}>
             <Grid item md={12} mb={2}>
               <TextField
@@ -269,8 +282,8 @@ export function Flow() {
               <EmojiPicker onEmojiClick={onEmojiClick} />
             </Popover>
             <Grid item md={12} mb={2}>
-              <Button color="success" variant="outlined" onClick={saveText}>
-                Salvar
+              <Button color="success" variant="outlined" onClick={saveText} disabled={saving}>
+                {saving ? "salvando..." : "Salvar"}
               </Button>
             </Grid>
           </Grid>

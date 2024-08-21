@@ -9,7 +9,6 @@ export class FlowService {
       return response.data;
     } catch (error) {
       return { status: 500, message: error.message }
-      console.error(error);
     }
   }
 
@@ -18,7 +17,7 @@ export class FlowService {
       const response = await httpService.post(environment.API.FLOW.INFO + "/" + code + "/nodes", data);
       return response.data;
     } catch (error) {
-      console.error(error);
+      return { status: 500, message: error.message }
     }
   }
 
@@ -27,7 +26,7 @@ export class FlowService {
       const response = await httpService.put(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes, data);
       return response.data;
     } catch (error) {
-      console.error(error);
+      return { status: 500, message: error.message }
     }
   }
 
@@ -36,7 +35,7 @@ export class FlowService {
       const response = await httpService.put(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes + "/content", data);
       return response.data;
     } catch (error) {
-      console.error(error);
+      return { status: 500, message: error.message }
     }
   }
 
@@ -59,7 +58,7 @@ export class FlowService {
       const response = await httpService.delete(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes);
       return response.data;
     } catch (error) {
-      console.error(error);
+      return { status: 500, message: error.message }
     }
   }
 
@@ -69,7 +68,7 @@ export class FlowService {
       const response = await httpService.post(environment.API.FLOW.INFO + "/" + code + "/edges", data);
       return response.data;
     } catch (error) {
-      console.error(error);
+      return { status: 500, message: error.message }
     }
   }
 
@@ -79,7 +78,7 @@ export class FlowService {
       const response = await httpService.delete(environment.API.FLOW.INFO + "/" + code + "/edges/" + source + "/" + target);
       return response.data;
     } catch (error) {
-      console.error(error);
+      return { status: 500, message: error.message }
     }
   }
 

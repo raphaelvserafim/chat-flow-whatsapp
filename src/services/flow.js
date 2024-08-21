@@ -8,6 +8,7 @@ export class FlowService {
       const response = await httpService.get(environment.API.FLOW.INFO + "/" + code);
       return response.data;
     } catch (error) {
+      return { status: 500, message: error.message }
       console.error(error);
     }
   }
@@ -36,6 +37,20 @@ export class FlowService {
       return response.data;
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  static async uploadFileNodes(code, code_nodes, data) {
+    try {
+      const response = await httpService.put(environment.API.FLOW.INFO + "/" + code + "/nodes/" + code_nodes + "/content", data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating content nodes:', error);
+      return { status: 500, message: error.message };
     }
   }
 

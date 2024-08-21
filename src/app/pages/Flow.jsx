@@ -11,8 +11,10 @@ import { Modal } from '@theflow/components/Modal';
 import EmojiPicker from 'emoji-picker-react';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import { ReactFlowProvider } from 'react-flow-renderer';
+import SingleImageUpload from '@theflow/components/SingleImageUpload';
 
-Cookies.set(environment.COOKIES.SESSION, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjM1OTY3NjAsImV4cCI6MTcyNDIwMTU2MH0.jhdTdxHmwLalhRYBVC75HtZFJ1nLMG6Kr7TafTRECHw");
+Cookies.set(environment.COOKIES.SESSION, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjQyMDI1OTIsImV4cCI6MTcyNDgwNzM5Mn0.idgwOGTnxhJrxlyqmhOQWsStZUisVMcqFk8wvDpSc1Q");
+
 
 export function Flow() {
   const { code } = useParams();
@@ -22,6 +24,8 @@ export function Flow() {
   const [dataNodes, setDataNodes] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [textMessage, setTextMessage] = useState(null);
+  const [imageMessage, setImageMessage] = useState(null);
+
   const [searching, setSearching] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -95,7 +99,7 @@ export function Flow() {
     if (data?.type === "remove") {
       try {
         const response = await FlowService.deleteNodes(code, data.node.id);
-        if (response.status === 200) {
+        if (response?.status === 200) {
           setSavedNodes((nds) => nds.filter((node) => node.id !== data.node.id));
           setSavedEdges((eds) => eds.filter((edge) => edge.source !== data.node.id && edge.target !== data.node.id));
         } else {
@@ -191,6 +195,8 @@ export function Flow() {
 
 
 
+
+
   const saveText = useCallback(async () => {
     try {
       setSaving(true);
@@ -213,17 +219,30 @@ export function Flow() {
     }
   }, [code, dataNodes, savedNodes, textMessage]);
 
+  const uploadFileNodes = async (file) => {
+    const { id } = dataNodes;
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await FlowService.uploadFileNodes(code, id, formData);
+    console.log(response)
+
+  }
+
 
   useEffect(() => {
     if (code) {
       setSearching(true);
-      FlowService.fetchGetFlow(code).then(({ status, nodes, edges }) => {
+      FlowService.fetchGetFlow(code).then(({ status, message, nodes, edges }) => {
+        setSearching(false);
         if (status === 200) {
           setSavedEdges(edges);
           setSavedNodes(nodes);
+          return;
         }
-        setSearching(false);
-      });
+        toast.error(message);
+      }).catch((e) => {
+        toast.error(e.message);
+      })
     }
   }, [code]);
 
@@ -246,6 +265,13 @@ export function Flow() {
       <Modal title="Editar" open={openModal} onClose={() => { setOpenModal(false); }}>
         {dataNodes && (
           <Grid container padding={2} spacing={2}>
+            {dataNodes?.type === "image_message" &&
+              <Grid item md={12} mb={2}>
+                <SingleImageUpload
+                  onFile={uploadFileNodes}
+                />
+              </Grid>
+            }
             <Grid item md={12} mb={2}>
               <TextField
                 fullWidth

@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { Handle } from 'react-flow-renderer';
 import { IconButton, Tooltip, Menu, MenuItem } from '@mui/material';
 import { Add as AddIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
-import { iconMap, messageTypes, specialItems } from '@theflow/constant';
+import { iconMap, MESSAGE_TYPE, messageTypes, specialItems } from '@theflow/constant';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import CustomAudioPlayer from './CustomAudioPlayer';
 
 export function DynamicNode({ id, data }) {
   const { type, onDelete, onAddConnection, onEdit } = data || {};
   const [anchorEl, setAnchorEl] = useState(null);
-
+  
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -31,9 +32,10 @@ export function DynamicNode({ id, data }) {
     }
   };
 
-  const isMenuMessage = type === 'menu_message';
-  const isEnd = type === 'end';
-  const isStart = type === 'start';
+  const isMenuMessage = type === MESSAGE_TYPE.MENU;
+  const isEnd = type === MESSAGE_TYPE.END;
+  const isStart = type === MESSAGE_TYPE.START;
+  const isAudio = type === MESSAGE_TYPE.AUDIO;
 
   const open = Boolean(anchorEl);
 
@@ -44,9 +46,10 @@ export function DynamicNode({ id, data }) {
 
 
   return (
-    <div className={`node-container ${isMenuMessage ? 'menu-message' : ''}`} key={id}>
+    <div className={`node-container`} key={id}>
       <div className="node-icon">
-        {iconMap[type]} <span className="name">{label}</span>
+        {iconMap[type]}
+        <span className="name">{label}</span>
       </div>
 
       {!Boolean(isStart) && (
@@ -66,8 +69,6 @@ export function DynamicNode({ id, data }) {
           className="handle-source"
         />
       )}
-
-
 
       <div className="node-actions">
         <Tooltip title="Opções" arrow>
@@ -116,6 +117,13 @@ export function DynamicNode({ id, data }) {
           <div className='text_content'>{data?.text_content}</div>
         )
       }
+
+      {isAudio && (
+        <div className='play'>
+          <CustomAudioPlayer url={data?.file_content?.url} />
+        </div>
+      )}
+
     </div >
   );
 };

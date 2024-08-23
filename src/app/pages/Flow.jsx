@@ -8,10 +8,8 @@ import { FlowEditor, Sidebar } from '@theflow/components';
 import { FlowService } from '@theflow/services/flow';
 import { toast } from 'react-toastify';
 import { Modal } from '@theflow/components/Modal';
-import EmojiPicker from 'emoji-picker-react';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import { ReactFlowProvider } from 'react-flow-renderer';
-import SingleImageUpload from '@theflow/components/SingleImageUpload';
+import { EditingNodesData } from '@theflow/components/EditingNodesData';
 
 Cookies.set(environment.COOKIES.SESSION, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoxLCJpYXQiOjE3MjQyMDI1OTIsImV4cCI6MTcyNDgwNzM5Mn0.idgwOGTnxhJrxlyqmhOQWsStZUisVMcqFk8wvDpSc1Q");
 
@@ -22,18 +20,12 @@ export function Flow() {
   const [savedEdges, setSavedEdges] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [dataNodes, setDataNodes] = useState(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [textMessage, setTextMessage] = useState(null);
-  const [imageMessage, setImageMessage] = useState(null);
+  const [saveAnswer, setSaveAnswer] = useState(false);
 
   const [searching, setSearching] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const emojiAnchorRef = useRef(null);
-
-  const toggleEmojiPicker = useCallback(() => {
-    setShowEmojiPicker((prev) => !prev);
-  }, []);
 
   const onEmojiClick = useCallback((event) => {
     setTextMessage((prevText) => prevText + event.emoji);
@@ -203,11 +195,12 @@ export function Flow() {
       const { id } = dataNodes;
       const { status, message } = await FlowService.updateContentNodes(code, id, {
         text_content: textMessage,
+        save_answer: saveAnswer,
       });
       if (status === 200) {
         toast.success(message);
         const updatedNodes = savedNodes.map((node) =>
-          node.id === id ? { ...node, text_content: textMessage } : node
+          node.id === id ? { ...node, text_content: textMessage, save_answer: saveAnswer } : node
         );
         setSavedNodes(updatedNodes);
       }
@@ -217,7 +210,7 @@ export function Flow() {
       toast.error(error.message);
       return false;
     }
-  }, [code, dataNodes, savedNodes, textMessage]);
+  }, [code, dataNodes, saveAnswer, savedNodes, textMessage]);
 
   const uploadFileNodes = async (file) => {
     const { id } = dataNodes;
@@ -228,6 +221,10 @@ export function Flow() {
 
   }
 
+
+  const changeSaveAnswer = (event) => {
+    setSaveAnswer(Boolean(event?.target?.checked))
+  }
 
   useEffect(() => {
     if (code) {
@@ -262,58 +259,22 @@ export function Flow() {
         </ReactFlowProvider>
       )}
 
+
       <Modal title="Editar" open={openModal} onClose={() => { setOpenModal(false); }}>
+
         {dataNodes && (
-          <Grid container padding={2} spacing={2}>
-            {dataNodes?.type === "image_message" &&
-              <Grid item md={12} mb={2}>
-                <SingleImageUpload
-                  onFile={uploadFileNodes}
-                />
-              </Grid>
-            }
-            <Grid item md={12} mb={2}>
-              <TextField
-                fullWidth
-                multiline
-                autoComplete="off"
-                value={textMessage}
-                label="Texto"
-                variant="outlined"
-                onChange={onChangetextMessage}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton ref={emojiAnchorRef} onClick={toggleEmojiPicker}>
-                        <EmojiEmotionsIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Popover
-              open={showEmojiPicker}
-              anchorEl={emojiAnchorRef.current}
-              onClose={() => setShowEmojiPicker(false)}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-            >
-              <EmojiPicker onEmojiClick={onEmojiClick} />
-            </Popover>
-            <Grid item md={12} mb={2}>
-              <Button color="success" variant="outlined" onClick={saveText} disabled={saving}>
-                {saving ? "salvando..." : "Salvar"}
-              </Button>
-            </Grid>
-          </Grid>
+          <EditingNodesData
+            dataNodes={dataNodes}
+            onUploadFileNodes={uploadFileNodes}
+            onChangetextMessage={onChangetextMessage}
+            onEmojiClick={onEmojiClick}
+            textMessage={textMessage}
+            saving={saving}
+            saveText={saveText}
+            onChangeSaveAnswer={changeSaveAnswer}
+          />
         )}
+
       </Modal>
     </Grid>
   );

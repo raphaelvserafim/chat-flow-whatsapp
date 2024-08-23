@@ -5,7 +5,7 @@ import { useDrop } from 'react-dnd';
 import "@theflow/assets/css/flow.css";
 
 import { DynamicNode, CustomEdge } from '@theflow/components';
-import { ItemTypes } from '@theflow/constant';
+import { ItemTypes, MESSAGE_TYPE } from '@theflow/constant';
 import { toast } from 'react-toastify';
 import { generateRandomToken } from '@theflow/utils';
 
@@ -67,6 +67,8 @@ function FlowEditorBase(props) {
         type: data.type,
         outputs: ['output-0'],
         text_content: data?.text_content || null,
+        file_content: data?.file_content || null,
+        save_answer: data?.save_answer,
         onDelete: handleDeleteNode,
         onAddConnection: addConnection,
         onEdit: () => props?.onEdit({ id: data.id, type: data.type }),
@@ -110,7 +112,7 @@ function FlowEditorBase(props) {
       return;
     }
 
-    if (sourceNode.data.type === 'menu_message') {
+    if (sourceNode.data.type === MESSAGE_TYPE.MENU) {
       if (targetNode.data.type !== 'text_message') {
         toast.error('menu_message só pode se conectar a text_message!');
         return;
@@ -118,7 +120,7 @@ function FlowEditorBase(props) {
     }
 
     const existingEdges = edges.filter(edge => edge.source === params.source);
-    if (existingEdges.length > 0 && sourceNode.data.type !== 'menu_message') {
+    if (existingEdges.length > 0 && sourceNode.data.type !== MESSAGE_TYPE.MENU) {
       toast.error('Cada nó pode ter apenas uma conexão de saída, exceto menu_message!');
       return;
     }

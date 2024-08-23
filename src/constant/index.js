@@ -9,6 +9,19 @@ import CallEndIcon from '@mui/icons-material/CallEnd';
 import FlagCircleIcon from '@mui/icons-material/FlagCircle';
 import MessageIcon from '@mui/icons-material/Message';
 
+export const MESSAGE_TYPE = {
+  TEXT: "text_message",
+  IMAGE: "image_message",
+  MENU: "menu_message",
+  QUESTION: "question_message",
+  AUDIO: "audio_message",
+  DOCUMENT: "document_message",
+  AI: "ai_message",
+  API: "api_request",
+  END: "end",
+  START: "start",
+}
+
 const itemConfig = {
   TEXT_MESSAGE: { label: 'Texto', Icon: MessageIcon, category: 'message', show: true, },
   QUESTION_MESSAGE: { label: 'Perguntar', Icon: QuestionAnswerIcon, category: 'message', show: true, },
@@ -40,3 +53,6 @@ export const ItemTypes = Object.keys(itemConfig).reduce((acc, key) => {
   acc[key] = key.toLowerCase();
   return acc;
 }, {});
+
+
+console.log(ItemTypes)

@@ -21,14 +21,12 @@ function SingleImageUpload(props) {
   return (
     <div {...getRootProps()} style={{ border: '1px dashed #ccc', padding: 5, textAlign: 'center' }}>
       <input {...getInputProps()} accept='image/*' />
-      {image ? (
-        <div>
-          <img src={image.preview} alt={image?.file.name} style={{ maxWidth: 250, height: 'auto' }} />
-
-        </div>
-      ) : (
-        <p>Arraste e solte uma imagem aqui, ou clique para selecionar uma.</p>
-      )}
+      <div>
+        {(image?.preview || props?.url) && (
+          <img src={image?.preview || props?.url} alt={image?.file.name} style={{ maxWidth: 250, height: 'auto' }} />
+        )}
+      </div>
+      <p>Arraste e solte uma imagem aqui, ou clique para selecionar uma.</p>
     </div>
   );
 }

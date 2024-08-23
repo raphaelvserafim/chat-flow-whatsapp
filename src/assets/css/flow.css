@@ -99,3 +99,31 @@
   height: 55px;
   padding: 3px;
 }
+
+.node-container .play {
+  position: relative;
+  text-align: center;
+  top: 21px;
+  margin-left: auto;
+  margin-right: auto;
+  display: table;
+}
+
+.audio-player {
+  display: flex;
+  align-items: center;
+}
+
+.play-pause-button {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: #25D366;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
